@@ -1,25 +1,90 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
+# Go artifacts
+*.o
+*.a
+*.so
 *.exe
 *.exe~
 *.dll
-*.so
 *.dylib
-
-# Test binary, built with `go test -c`
 *.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+*.prof
+*.swp
+*.swo
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+_testmain.go
+_obj
+_test
+/vendor/
+/bin/
+/dist/
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
 
-# Go workspace file
-go.work
-go.work.sum
+# DuckDB files
+*.db
+*.wal
 
-# env file
+# Parquet files
+*.parquet
+*.parq
+
+# Data directories
+/data/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Configuration files with sensitive information
 .env
+/config.local.yaml
+
+# Dependency directories for Go
+/pkg/mod/
+
+.DS_Store

@@ -21,6 +21,134 @@ FeatherStore follows a clean architecture approach with these primary components
   - **Parquet**: Native Parquet file storage for efficient columnar data storage
 - **Metrics & Observability**: Prometheus metrics, logging, and tracing
 
+### System Architecture Diagram
+
+```mermaid
+graph TD
+    %% Client Components
+    Client[Client Applications]
+    PyClient[Python Client]
+    
+    %% Server Components
+    subgraph FeatherStore["FeatherStore Server"]
+        %% API Layer
+        subgraph APILayer["API Layer"]
+            HTTP[HTTP REST API]
+            Flight[Arrow Flight RPC]
+        end
+        
+        %% Core Layer
+        subgraph CoreLayer["Core Layer"]
+            FeatureLogic[Feature Processing Logic]
+            SchemaManagement[Schema Management]
+            Validation[Data Validation]
+        end
+        
+        %% Storage Layer
+        subgraph StorageLayer["Storage Layer"]
+            StorageFactory[Storage Factory]
+            
+            subgraph Backends["Storage Backends"]
+                DuckDB[DuckDB Storage]
+                Parquet[Parquet Storage]
+            end
+        end
+        
+        %% Observability
+        subgraph Observability["Observability"]
+            Metrics[Prometheus Metrics]
+            Logging[Structured Logging]
+        end
+    end
+    
+    %% External Systems
+    Prometheus[Prometheus]
+    MLFrameworks[ML Frameworks]
+    
+    %% Connections - Client to API
+    Client -->|HTTP Requests| HTTP
+    Client -->|Arrow Flight Protocol| Flight
+    PyClient -->|HTTP Requests| HTTP
+    PyClient -->|Arrow Flight Protocol| Flight
+    
+    %% Connections - API to Core
+    HTTP -->|Feature Set Operations| FeatureLogic
+    Flight -->|Batch Ingestion/Retrieval| FeatureLogic
+    
+    %% Connections - Core to Storage
+    FeatureLogic -->|Schema Validation| SchemaManagement
+    FeatureLogic -->|Data Validation| Validation
+    FeatureLogic -->|Storage Operations| StorageFactory
+    
+    %% Storage Factory to Backends
+    StorageFactory -->|Create/Select Backend| DuckDB
+    StorageFactory -->|Create/Select Backend| Parquet
+    
+    %% Observability Connections
+    HTTP -->|Record Metrics| Metrics
+    Flight -->|Record Metrics| Metrics
+    FeatureLogic -->|Log Operations| Logging
+    DuckDB -->|Log Operations| Logging
+    Parquet -->|Log Operations| Logging
+    Metrics -->|Export Metrics| Prometheus
+    
+    %% External Connections
+    MLFrameworks -->|Consume Features| Client
+    
+    %% Data Flow
+    classDef apiLayer fill:#f9f,stroke:#333,stroke-width:2px
+    classDef coreLayer fill:#bbf,stroke:#333,stroke-width:2px
+    classDef storageLayer fill:#bfb,stroke:#333,stroke-width:2px
+    classDef observability fill:#fbb,stroke:#333,stroke-width:2px
+    
+    class HTTP,Flight apiLayer
+    class FeatureLogic,SchemaManagement,Validation coreLayer
+    class StorageFactory,DuckDB,Parquet,Backends storageLayer
+    class Metrics,Logging,Observability observability
+```
+
+### Data Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant API as API Layer (HTTP/Flight)
+    participant Core as Core Layer
+    participant Storage as Storage Layer
+    participant Backend as Storage Backend
+    
+    %% Feature Set Creation
+    Client->>API: Create Feature Set
+    API->>Core: Validate Feature Set Schema
+    Core->>Storage: Create Feature Set
+    Storage->>Backend: Initialize Storage
+    Backend-->>Storage: Storage Initialized
+    Storage-->>Core: Feature Set Created
+    Core-->>API: Success Response
+    API-->>Client: Feature Set Created
+    
+    %% Feature Ingestion
+    Client->>API: Ingest Feature Batch (Arrow Record)
+    API->>Core: Process Feature Batch
+    Core->>Core: Validate Schema Compatibility
+    Core->>Storage: Store Feature Batch
+    Storage->>Backend: Write Data
+    Backend-->>Storage: Write Confirmed
+    Storage-->>Core: Ingestion Complete
+    Core-->>API: Success Response
+    API-->>Client: Batch Ingested
+    
+    %% Feature Retrieval
+    Client->>API: Get Features (Entity IDs)
+    API->>Core: Process Feature Request
+    Core->>Storage: Retrieve Features
+    Storage->>Backend: Read Data
+    Backend-->>Storage: Return Arrow Record
+    Storage-->>Core: Features Retrieved
+    Core-->>API: Arrow Record Batch
+    API-->>Client: Feature Data (Arrow Record)
+```
+
 ## Storage Options
 
 FeatherStore supports multiple storage backends, each with its own strengths:
